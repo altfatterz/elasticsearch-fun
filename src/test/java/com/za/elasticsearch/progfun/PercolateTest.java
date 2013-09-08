@@ -140,8 +140,10 @@ public class PercolateTest {
                             .startObject("location")
                                 .field("type", "geo_point")
                             .endObject()
-                        .startObject("price")
-                        .field("type", "integer")
+                            .startObject("price")
+                                 .field("type", "integer")
+                            .endObject()
+                        .endObject()
                     .endObject()
                 .endObject();
 
