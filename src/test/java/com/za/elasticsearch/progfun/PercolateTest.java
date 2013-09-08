@@ -8,10 +8,12 @@ import static org.elasticsearch.index.query.QueryBuilders.constantScoreQuery;
 import static org.elasticsearch.node.NodeBuilder.nodeBuilder;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.io.IOException;
 import java.util.Date;
 
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.percolate.PercolateResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
@@ -65,6 +67,7 @@ public class PercolateTest {
                 .setSource(jsonBuilder()
                         .startObject()
                             .field("query", constantScoreQuery(filterBuilder()))
+                            .field("user_id", "123")
                         .endObject())
                 .setRefresh(true)  // // Needed when the query shall be available immediately
                 .execute().actionGet();
@@ -95,6 +98,11 @@ public class PercolateTest {
         assertThat(response.getMatches()[0].getIndex().toString(), is("households"));
         assertThat(response.getMatches()[0].getId().toString(), is("myQuery"));
 
+        GetResponse matchedQuery = client.prepareGet("households","_percolator", "myQuery")
+                            .setFetchSource("user_id", "query")
+                            .execute().actionGet();
+        assertThat(((String) matchedQuery.getSource().get("user_id")), is("123"));
+        assertThat(matchedQuery.getSource().get("query"), is(nullValue()));
     }
 
     private FilterBuilder filterBuilder() {
